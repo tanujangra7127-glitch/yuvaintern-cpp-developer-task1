@@ -1,0 +1,104 @@
+
+#include <iostream>
+#include <vector>
+#include <memory>
+#include <string>
+using namespace std;
+
+// Entity class
+class Entity {
+private:
+    int id;
+    string name;
+    float x, y;
+    float velocityX, velocityY;
+
+public:
+    Entity(int entityId, string entityName,
+           float posX, float posY)
+        : id(entityId), name(entityName),
+          x(posX), y(posY),
+          velocityX(1.0f), velocityY(1.0f) {}
+
+    void update(float deltaTime) {
+        x += velocityX * deltaTime;
+        y += velocityY * deltaTime;
+    }
+
+    void display() const {
+        cout << "Entity ID: " << id << endl;
+        cout << "Name: " << name << endl;
+        cout << "Position: (" << x << ", " << y << ")" << endl;
+        cout << "------------------------" << endl;
+    }
+};
+
+// Factory Pattern
+class EntityFactory {
+public:
+    static unique_ptr<Entity> createEntity(
+        int id, const string& name, float x, float y) {
+        return make_unique<Entity>(id, name, x, y);
+    }
+};
+
+// World manages all entities
+class World {
+private:
+    vector<unique_ptr<Entity>> entities;
+
+public:
+    void addEntity(unique_ptr<Entity> entity) {
+        entities.push_back(move(entity));
+    }
+
+    void update(float deltaTime) {
+        for (auto& entity : entities) {
+            entity->update(deltaTime);
+        }
+    }
+
+    void display() const {
+        for (const auto& entity : entities) {
+            entity->display();
+        }
+    }
+};
+
+// Simulation Manager
+class SimulationManager {
+private:
+    World world;
+
+public:
+    void initialize() {
+        world.addEntity(
+            EntityFactory::createEntity(1, "Player", 0, 0));
+
+        world.addEntity(
+            EntityFactory::createEntity(2, "Enemy", 5, 5));
+    }
+
+    void run() {
+        const float deltaTime = 1.0f;
+
+        for (int step = 1; step <= 5; step++) {
+            cout << "\nSimulation Step: " << step << endl;
+
+            world.update(deltaTime);
+            world.display();
+        }
+    }
+};
+
+int main() {
+    cout << "=== C++ Simulation Engine ===" << endl;
+
+    SimulationManager simulation;
+    simulation.initialize();
+    simulation.run();
+
+    cout << "\nSimulation completed successfully!" << endl;
+
+    return 0;
+}
